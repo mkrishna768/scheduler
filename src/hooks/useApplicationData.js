@@ -10,6 +10,7 @@ export default function useApplicationData () {
   });
 
   const setDay = day => setState({ ...state, day });
+
   useEffect(() => {
     Promise.all([
     Axios.get("/api/days"),
@@ -30,7 +31,11 @@ export default function useApplicationData () {
       [id]: appointment
     };
     return Axios.put(`/api/appointments/${id}`, {interview})
-      .then(() => setState({...state, appointments}))
+      .then(() => {
+        state.days.forEach(day => {if (day.name === state.day && state.appointments[id].interview === null) day.spots--;});
+        setState({...state, appointments});
+        
+      })
   }  
   
   function cancelInterview(id) {
@@ -43,7 +48,11 @@ export default function useApplicationData () {
       [id]: appointment
     };
     return Axios.delete(`/api/appointments/${id}`)
-      .then(() => setState({...state, appointments}));
+      .then(() => {
+        state.days.forEach(day => {if (day.name === state.day) day.spots++});
+        setState({...state, appointments});
+        
+      });
   }
   return {state, setDay, bookInterview, cancelInterview}
 }
